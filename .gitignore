@@ -1,0 +1,24 @@
+# ==============================================================================
+# Archivos y carpetas ocultas (aquellos que comienzan con un punto '.')
+# ==============================================================================
+.*
+
+# ==============================================================================
+# Excepciones necesarias
+# ==============================================================================
+# Mantener este archivo .gitignore en control de versiones
+!.gitignore
+
+# Mantener las skills y configuraciones de agentes del proyecto
+!.agents/
+!.agents/**
+
+# ==============================================================================
+# Archivos del sistema operativo y metadatos
+# ==============================================================================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+.DS_Store

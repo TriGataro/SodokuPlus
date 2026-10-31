@@ -1,0 +1,495 @@
+/* ==========================================================================
+   Variables de Temas de Color (Regla de lectura y accesibilidad)
+   ========================================================================== */
+
+:root, [data-theme="light"] {
+  --bg-app: #f4f6f9;
+  --bg-card: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --border-subtle: #e5e7eb;
+  --board-bg: #ffffff;
+  --board-outer-border: #1f2937;
+  --board-inner-border: #d1d5db;
+  --board-block-border: #374151;
+  --cell-bg: #ffffff;
+  --cell-fixed-color: #111827;
+  --cell-fixed-weight: 700;
+  --cell-user-color: #1d4ed8;
+  --cell-user-weight: 600;
+  --cell-selected-bg: #bfdbfe;
+  --cell-selected-border: #2563eb;
+  --cell-related-bg: #eff6ff;
+  --cell-same-val-bg: #dbeafe;
+  --cell-error-bg: #fee2e2;
+  --cell-error-color: #b91c1c;
+  --keypad-btn-bg: #f3f4f6;
+  --keypad-btn-hover: #e5e7eb;
+  --keypad-btn-active: #d1d5db;
+  --keypad-btn-color: #1f2937;
+}
+
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --bg-card: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-subtle: #334155;
+  --board-bg: #1e293b;
+  --board-outer-border: #94a3b8;
+  --board-inner-border: #334155;
+  --board-block-border: #64748b;
+  --cell-bg: #1e293b;
+  --cell-fixed-color: #f1f5f9;
+  --cell-fixed-weight: 700;
+  --cell-user-color: #60a5fa;
+  --cell-user-weight: 600;
+  --cell-selected-bg: #1e3a8a;
+  --cell-selected-border: #60a5fa;
+  --cell-related-bg: #172554;
+  --cell-same-val-bg: #1d4ed8;
+  --cell-error-bg: #7f1d1d;
+  --cell-error-color: #fca5a5;
+  --keypad-btn-bg: #334155;
+  --keypad-btn-hover: #475569;
+  --keypad-btn-active: #64748b;
+  --keypad-btn-color: #f8fafc;
+}
+
+[data-theme="sepia"] {
+  --bg-app: #f5eedc;
+  --bg-card: #fdf8ec;
+  --text-primary: #433422;
+  --text-secondary: #735e46;
+  --border-subtle: #e2d7c0;
+  --board-bg: #fdf8ec;
+  --board-outer-border: #5b4632;
+  --board-inner-border: #e2d7c0;
+  --board-block-border: #8c7355;
+  --cell-bg: #fdf8ec;
+  --cell-fixed-color: #382b1c;
+  --cell-fixed-weight: 700;
+  --cell-user-color: #854d0e;
+  --cell-user-weight: 600;
+  --cell-selected-bg: #edd9b4;
+  --cell-selected-border: #b45309;
+  --cell-related-bg: #f6ecda;
+  --cell-same-val-bg: #ebd4ad;
+  --cell-error-bg: #fcd5ce;
+  --cell-error-color: #9f1239;
+  --keypad-btn-bg: #eee2cd;
+  --keypad-btn-hover: #e0d0b5;
+  --keypad-btn-active: #cfbe9f;
+  --keypad-btn-color: #433422;
+}
+
+[data-theme="contrast"] {
+  --bg-app: #000000;
+  --bg-card: #121212;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --border-subtle: #ffffff;
+  --board-bg: #000000;
+  --board-outer-border: #ffffff;
+  --board-inner-border: #555555;
+  --board-block-border: #ffffff;
+  --cell-bg: #000000;
+  --cell-fixed-color: #ffffff;
+  --cell-fixed-weight: 800;
+  --cell-user-color: #00e5ff;
+  --cell-user-weight: 700;
+  --cell-selected-bg: #ffd600;
+  --cell-selected-border: #ffffff;
+  --cell-related-bg: #222222;
+  --cell-same-val-bg: #ffea00;
+  --cell-error-bg: #ff1744;
+  --cell-error-color: #ffffff;
+  --keypad-btn-bg: #222222;
+  --keypad-btn-hover: #333333;
+  --keypad-btn-active: #555555;
+  --keypad-btn-color: #ffffff;
+}
+
+/* ==========================================================================
+   Estilos Generales de la Interfaz
+   ========================================================================== */
+
+body.app-body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.app-navbar {
+  background-color: var(--bg-card);
+  border-color: var(--border-subtle) !important;
+}
+
+.app-footer {
+  background-color: var(--bg-card);
+  border-color: var(--border-subtle) !important;
+  color: var(--text-secondary);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.footer-author-link {
+  color: var(--cell-user-color);
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.footer-author-link:hover {
+  opacity: 0.85;
+  text-decoration: underline !important;
+}
+
+.brand-title {
+  font-size: 1.45rem;
+  letter-spacing: -0.5px;
+}
+
+.status-card,
+.side-card {
+  background-color: var(--bg-card);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.timer-box {
+  background-color: var(--bg-app);
+  padding: 0.25rem 0.65rem;
+  border-radius: 0.375rem;
+}
+
+/* ==========================================================================
+   Tablero de Sudoku (9x9)
+   ========================================================================== */
+
+.board-wrapper {
+  max-width: 480px;
+}
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: var(--board-bg);
+  border: 3px solid var(--board-outer-border);
+  border-radius: 6px;
+  overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Celdas individuales */
+.sudoku-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.1rem, 4vw, 1.8rem);
+  line-height: 1;
+  background-color: var(--cell-bg);
+  border-right: 1px solid var(--board-inner-border);
+  border-bottom: 1px solid var(--board-inner-border);
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.1s ease;
+}
+
+/* Líneas gruesas para delimitar bloques 3x3 */
+.sudoku-cell[data-col="2"],
+.sudoku-cell[data-col="5"] {
+  border-right: 2.5px solid var(--board-block-border);
+}
+
+.sudoku-cell[data-row="2"],
+.sudoku-cell[data-row="5"] {
+  border-bottom: 2.5px solid var(--board-block-border);
+}
+
+.sudoku-cell[data-col="8"] {
+  border-right: none;
+}
+
+.sudoku-cell[data-row="8"] {
+  border-bottom: none;
+}
+
+/* Tipos de valores en celdas */
+.sudoku-cell.cell-fixed {
+  color: var(--cell-fixed-color);
+  font-weight: var(--cell-fixed-weight);
+}
+
+.sudoku-cell.cell-user {
+  color: var(--cell-user-color);
+  font-weight: var(--cell-user-weight);
+}
+
+/* Estados de resaltado e interacción */
+.sudoku-cell.cell-related {
+  background-color: var(--cell-related-bg);
+}
+
+.sudoku-cell.cell-same-val {
+  background-color: var(--cell-same-val-bg);
+}
+
+.sudoku-cell.cell-selected {
+  background-color: var(--cell-selected-bg) !important;
+  outline: 3px solid var(--cell-selected-border);
+  outline-offset: -3px;
+  z-index: 2;
+}
+
+/* Celda con error / conflicto */
+.sudoku-cell.cell-error {
+  background-color: var(--cell-error-bg) !important;
+  color: var(--cell-error-color) !important;
+  animation: shake 0.3s ease-in-out;
+}
+
+/* Animación de entrada de valor */
+.sudoku-cell.cell-pop {
+  animation: popIn 0.18s ease-out;
+}
+
+/* ==========================================================================
+   Teclado Virtual de Símbolos
+   ========================================================================== */
+
+.keypad-container {
+  max-width: 480px;
+}
+
+.keypad-btn {
+  background-color: var(--keypad-btn-bg);
+  color: var(--keypad-btn-color);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-size: clamp(1.2rem, 3.8vw, 1.7rem);
+  font-weight: 700;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.keypad-btn:hover {
+  background-color: var(--keypad-btn-hover);
+  color: var(--keypad-btn-color);
+  transform: translateY(-1px);
+}
+
+.keypad-btn:active {
+  background-color: var(--keypad-btn-active);
+  transform: translateY(1px);
+}
+
+/* Símbolos en modo emoji */
+.symbol-emoji {
+  font-size: clamp(1.2rem, 3.6vw, 1.6rem);
+  line-height: 1;
+}
+
+/* Texto de botones de acción */
+.action-btn-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Overlay de Pausa */
+.pause-overlay {
+  background-color: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+/* ==========================================================================
+   Animaciones
+   ========================================================================== */
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.animate-trophy {
+  animation: bounce 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-12px); }
+}
+
+/* ==========================================================================
+   Estilos de Récords y Modales
+   ========================================================================== */
+
+.modal-content {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-subtle) !important;
+}
+
+.records-table {
+  color: var(--text-primary);
+}
+
+.records-table thead th {
+  background-color: var(--bg-app);
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-subtle);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.records-table tbody td {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.65rem 0.75rem;
+  font-size: 0.92rem;
+}
+
+.th-rank {
+  width: 52px;
+}
+
+.badge-rank {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.badge-rank-1 {
+  background: linear-gradient(135deg, #ffd700, #f59e0b);
+  color: #78350f;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.35);
+}
+
+.badge-rank-2 {
+  background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+  color: #1e293b;
+  box-shadow: 0 2px 4px rgba(148, 163, 184, 0.35);
+}
+
+.badge-rank-3 {
+  background: linear-gradient(135deg, #fed7aa, #d97706);
+  color: #7c2d12;
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.35);
+}
+
+.badge-rank-other {
+  background-color: var(--bg-app);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   Ajustes Responsivos para Computadores y Pantallas de Celulares
+   ========================================================================== */
+
+.header-controls-wrap {
+  gap: 0.35rem !important;
+}
+
+.header-btn {
+  font-size: 0.82rem;
+  padding: 0.28rem 0.55rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .board-wrapper {
+    max-width: 100%;
+    padding: 0 2px;
+  }
+
+  .sudoku-grid {
+    border-width: 2.5px;
+  }
+
+  .sudoku-cell {
+    font-size: clamp(0.95rem, 5.2vw, 1.45rem);
+  }
+
+  .keypad-container {
+    max-width: 100%;
+  }
+
+  .keypad-btn {
+    height: 44px;
+    font-size: 1.2rem;
+    border-radius: 6px;
+  }
+
+  .symbol-emoji {
+    font-size: 1.1rem;
+  }
+
+  .action-btn-text {
+    font-size: 0.72rem;
+  }
+
+  .status-card .card-body {
+    padding: 0.5rem 0.65rem;
+  }
+
+  .timer-box {
+    padding: 0.2rem 0.5rem;
+  }
+
+  #timerDisplay {
+    font-size: 1.05rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-title {
+    font-size: 1.15rem;
+  }
+
+  .header-controls-wrap {
+    gap: 0.25rem !important;
+  }
+
+  .header-btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.45rem;
+  }
+}

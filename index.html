@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SodokuPlus - Clásico &amp; Variantes</title>
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons 1.11.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Estilos del proyecto -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-body">
+  <!-- Barra de Navegación Superior Responsiva (Visible en computadores y celulares) -->
+  <header class="border-bottom app-navbar py-2">
+    <div class="container-fluid px-2 px-sm-3 px-md-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        
+        <!-- Logo de la Aplicación -->
+        <a class="navbar-brand d-flex align-items-center gap-1 gap-sm-2 fw-bold text-primary brand-title m-0 text-decoration-none" href="#">
+          <i class="bi bi-grid-3x3-gap-fill fs-4 fs-sm-3"></i>
+          <span>Sodoku<span class="text-danger">Plus</span></span>
+        </a>
+
+        <!-- Controles Principales: Récords, Temas y Modalidad de Símbolos -->
+        <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 header-controls-wrap">
+          
+          <!-- Botón de Top 5 Récords (Siempre visible) -->
+          <button type="button" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 header-btn" id="btnOpenRecords" data-bs-toggle="modal" data-bs-target="#recordsModal" title="Ver los 5 mejores tiempos">
+            <i class="bi bi-trophy-fill"></i>
+            <span class="d-none d-sm-inline">Top 5</span>
+            <span>Récords</span>
+          </button>
+
+          <!-- Selector de Temas de Color para Mejor Lectura (Siempre visible) -->
+          <div class="btn-group" role="group" aria-label="Selector de tema">
+            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-1 header-btn" data-bs-toggle="dropdown" aria-expanded="false" id="themeDropdownBtn" title="Cambiar tema de color">
+              <i class="bi bi-palette-fill"></i>
+              <span id="currentThemeLabel">Tema</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="themeDropdownBtn">
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="light">
+                  <i class="bi bi-sun-fill text-warning"></i> Modo Claro
+                </button>
+              </li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="dark">
+                  <i class="bi bi-moon-stars-fill text-info"></i> Modo Oscuro
+                </button>
+              </li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="sepia">
+                  <i class="bi bi-book-half text-danger"></i> Tono Sepia (Lectura)
+                </button>
+              </li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="contrast">
+                  <i class="bi bi-circle-half text-primary"></i> Alto Contraste
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Selector de Modo de Símbolos en Combobox / Dropdown (Al igual que el modo de temas) -->
+          <div class="btn-group" role="group" aria-label="Selector de modalidad de símbolos">
+            <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle d-flex align-items-center gap-1 header-btn" data-bs-toggle="dropdown" aria-expanded="false" id="symbolDropdownBtn" title="Cambiar modalidad de símbolos">
+              <i class="bi bi-123" id="currentSymbolIcon"></i>
+              <span id="currentSymbolLabel">Números (1-9)</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="symbolDropdownBtn">
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="numbers">
+                  <i class="bi bi-123 text-primary"></i> Números (1-9)
+                </button>
+              </li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="letters">
+                  <i class="bi bi-fonts text-success"></i> Letras (A-I)
+                </button>
+              </li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="emojis">
+                  <i class="bi bi-emoji-smile text-warning"></i> Emojis (Frutas)
+                </button>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal de la Aplicación -->
+  <main class="container py-3 py-md-4 flex-grow-1">
+    <div class="row justify-content-center g-4">
+
+      <!-- Columna Principal: Tablero y Panel de Control -->
+      <div class="col-12 col-lg-8 col-xl-7 d-flex flex-column align-items-center">
+
+        <!-- Barra de Estado y Métricas -->
+        <div class="card w-100 mb-3 shadow-sm status-card">
+          <div class="card-body p-2 p-md-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              
+              <!-- Nivel de Dificultad -->
+              <div class="d-flex align-items-center gap-2">
+                <label for="difficultySelect" class="form-label mb-0 fw-semibold text-secondary d-flex align-items-center gap-1">
+                  <i class="bi bi-speedometer2"></i> Nivel:
+                </label>
+                <select id="difficultySelect" class="form-select form-select-sm w-auto">
+                  <option value="very-easy">Muy Fácil</option>
+                  <option value="easy" selected>Fácil</option>
+                  <option value="medium">Medio</option>
+                  <option value="hard">Difícil</option>
+                </select>
+              </div>
+
+              <!-- Cronómetro -->
+              <div class="d-flex align-items-center gap-2 timer-box">
+                <i class="bi bi-stopwatch text-primary fs-5"></i>
+                <span id="timerDisplay" class="fw-bold font-monospace fs-5">00:00</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnPause" title="Pausar o reanudar partida">
+                  <i class="bi bi-pause-fill" id="btnPauseIcon"></i>
+                </button>
+              </div>
+
+              <!-- Errores y Pistas -->
+              <div class="d-flex align-items-center gap-3">
+                <div class="badge bg-danger-subtle text-danger border border-danger-subtle d-flex align-items-center gap-1 px-2 py-1">
+                  <i class="bi bi-x-circle-fill"></i>
+                  <span>Errores: <strong id="errorsCount">0</strong></span>
+                </div>
+                <div class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle d-flex align-items-center gap-1 px-2 py-1">
+                  <i class="bi bi-lightbulb-fill"></i>
+                  <span>Pistas: <strong id="hintsCount">3</strong></span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Área del Tablero de Sudoku -->
+        <div class="board-wrapper position-relative w-100 d-flex justify-content-center">
+          <div id="sudokuGrid" class="sudoku-grid shadow-sm" role="grid" aria-label="Tablero de Sudoku">
+            <!-- 81 celdas generadas dinámicamente desde index.js -->
+          </div>
+
+          <!-- Overlay de pausa -->
+          <div id="pauseOverlay" class="pause-overlay d-none position-absolute top-0 start-0 w-100 h-100 rounded d-flex flex-column align-items-center justify-content-center">
+            <i class="bi bi-pause-circle text-white display-1 mb-3"></i>
+            <h3 class="text-white fw-bold mb-3">Partida Pausada</h3>
+            <button type="button" class="btn btn-light btn-lg px-4 fw-semibold" id="btnResume">
+              <i class="bi bi-play-fill"></i> Continuar
+            </button>
+          </div>
+        </div>
+
+        <!-- Teclado Virtual de Símbolos -->
+        <div class="keypad-container mt-3 w-100">
+          <div class="row g-1 g-sm-2 justify-content-center mb-2" id="keypadSymbolsRow">
+            <!-- Botones de 1 a 9 o equivalentes inyectados dinámicamente -->
+          </div>
+
+          <!-- Botones de Acción (Borrar, Pista, Deshacer, Comprobar) -->
+          <div class="row g-1 g-sm-2 justify-content-center action-buttons-row">
+            <div class="col-3">
+              <button type="button" class="btn btn-outline-danger w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-1 py-2" id="btnErase" title="Borrar celda seleccionada">
+                <i class="bi bi-eraser-fill"></i>
+                <span class="action-btn-text">Borrar</span>
+              </button>
+            </div>
+            <div class="col-3">
+              <button type="button" class="btn btn-outline-warning w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-1 py-2" id="btnHint" title="Revelar pista en la celda seleccionada">
+                <i class="bi bi-lightbulb-fill"></i>
+                <span class="action-btn-text">Pista</span>
+              </button>
+            </div>
+            <div class="col-3">
+              <button type="button" class="btn btn-outline-secondary w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-1 py-2" id="btnUndo" title="Deshacer último movimiento">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                <span class="action-btn-text">Deshacer</span>
+              </button>
+            </div>
+            <div class="col-3">
+              <button type="button" class="btn btn-outline-success w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-1 py-2" id="btnCheck" title="Verificar tablero actual">
+                <i class="bi bi-check2-circle"></i>
+                <span class="action-btn-text">Verificar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones Globales de Juego -->
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 w-100">
+          <button type="button" class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2" id="btnNewGame">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Nuevo Juego</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-2 px-3 py-2" id="btnRestartGame">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Reiniciar Partida</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Columna Lateral: Guía y Ayuda de Variantes -->
+      <div class="col-12 col-lg-4 col-xl-4">
+        
+        <div class="card shadow-sm mb-3 side-card">
+          <div class="card-header bg-transparent fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle-fill text-primary"></i>
+            <span>Modalidades de Símbolos</span>
+          </div>
+          <div class="card-body">
+            <p class="small text-secondary mb-2">
+              Puedes alternar el conjunto de símbolos en cualquier momento sin perder tu progreso:
+            </p>
+            <ul class="list-group list-group-flush small">
+              <li class="list-group-item d-flex align-items-center gap-2 px-0">
+                <i class="bi bi-123 text-primary fs-5"></i>
+                <div>
+                  <strong>Números:</strong> 1 al 9 (Modo clásico tradicional)
+                </div>
+              </li>
+              <li class="list-group-item d-flex align-items-center gap-2 px-0">
+                <i class="bi bi-fonts text-success fs-5"></i>
+                <div>
+                  <strong>Letras:</strong> A, B, C, D, E, F, G, H, I (Wordoku)
+                </div>
+              </li>
+              <li class="list-group-item d-flex align-items-center gap-2 px-0">
+                <i class="bi bi-emoji-smile text-warning fs-5"></i>
+                <div>
+                  <strong>Emojis:</strong> 9 frutas distintivas visualmente
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card shadow-sm side-card">
+          <div class="card-header bg-transparent fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-keyboard-fill text-primary"></i>
+            <span>Atajos de Teclado</span>
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled small mb-0 d-flex flex-column gap-2 text-secondary">
+              <li class="d-flex justify-content-between align-items-center">
+                <span>Moverse por el tablero:</span>
+                <kbd class="text-bg-secondary"><i class="bi bi-arrow-up"></i> <i class="bi bi-arrow-down"></i> <i class="bi bi-arrow-left"></i> <i class="bi bi-arrow-right"></i></kbd>
+              </li>
+              <li class="d-flex justify-content-between align-items-center">
+                <span>Escribir número:</span>
+                <kbd class="text-bg-secondary">1 - 9</kbd>
+              </li>
+              <li class="d-flex justify-content-between align-items-center">
+                <span>Escribir letra:</span>
+                <kbd class="text-bg-secondary">A - I</kbd>
+              </li>
+              <li class="d-flex justify-content-between align-items-center">
+                <span>Borrar celda:</span>
+                <kbd class="text-bg-secondary">Retroceso / Supr</kbd>
+              </li>
+              <li class="d-flex justify-content-between align-items-center">
+                <span>Deshacer jugada:</span>
+                <kbd class="text-bg-secondary">Ctrl + Z</kbd>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Pie de página (Footer) según convenciones del proyecto -->
+  <footer class="app-footer border-top py-3 mt-auto">
+    <div class="container text-center">
+      <p class="mb-0 text-secondary">
+        Página hecha por
+        <a href="https://github.com/TriGataro" target="_blank" rel="noopener noreferrer" class="footer-author-link text-decoration-none fw-semibold">
+          <i class="bi bi-github me-1"></i>Trigataro
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Modal de Victoria -->
+  <div class="modal fade" id="victoryModal" tabindex="-1" aria-labelledby="victoryModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center p-3">
+        <div class="modal-body py-4">
+          <div class="mb-3 text-warning display-1 animate-trophy">
+            <i class="bi bi-trophy-fill"></i>
+          </div>
+          <h2 class="modal-title fw-bold text-success mb-2" id="victoryModalTitle">¡Felicitaciones!</h2>
+          <p class="text-secondary fs-5 mb-4">Has resuelto con éxito el tablero de Sudoku.</p>
+
+          <div class="card bg-light border-0 py-3 px-4 mb-4 text-start">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-secondary"><i class="bi bi-speedometer2 me-1"></i> Dificultad:</span>
+              <strong id="modalDifficultyText">Fácil</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-secondary"><i class="bi bi-stopwatch me-1"></i> Tiempo empleado:</span>
+              <strong id="modalTimeText">00:00</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-secondary"><i class="bi bi-x-circle me-1"></i> Errores cometidos:</span>
+              <strong id="modalErrorsText">0</strong>
+            </div>
+            <!-- Notificación si entra en el Top 5 -->
+            <div id="victoryRecordNotice" class="d-none mt-2 pt-2 border-top text-center">
+              <span class="badge bg-warning text-dark py-2 px-3 fw-bold fs-6">
+                <i class="bi bi-award-fill me-1"></i> ¡Nuevo Récord en el Top 5!
+              </span>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-center gap-2">
+            <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-outline-warning px-3 d-flex align-items-center gap-1" id="btnModalViewRecords">
+              <i class="bi bi-trophy-fill"></i> Ver Récords
+            </button>
+            <button type="button" class="btn btn-primary px-3 d-flex align-items-center gap-2" id="btnModalPlayAgain">
+              <i class="bi bi-play-circle-fill"></i> Jugar Otra Vez
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Top 5 Récords -->
+  <div class="modal fade" id="recordsModal" tabindex="-1" aria-labelledby="recordsModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="recordsModalTitle">
+            <i class="bi bi-trophy-fill text-warning"></i>
+            <span>Top 5 Mejores Récords</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-3 p-md-4">
+          <!-- Filtro de Dificultad -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filtro de dificultad" id="recordsFilterGroup">
+              <button type="button" class="btn btn-outline-primary active" data-records-filter="all">Todos</button>
+              <button type="button" class="btn btn-outline-primary" data-records-filter="very-easy">Muy Fácil</button>
+              <button type="button" class="btn btn-outline-primary" data-records-filter="easy">Fácil</button>
+              <button type="button" class="btn btn-outline-primary" data-records-filter="medium">Medio</button>
+              <button type="button" class="btn btn-outline-primary" data-records-filter="hard">Difícil</button>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" id="btnClearRecords" title="Restablecer historial de récords">
+              <i class="bi bi-trash3-fill"></i>
+              <span>Borrar Récords</span>
+            </button>
+          </div>
+
+          <!-- Contenedor de la Tabla de Récords -->
+          <div class="table-responsive" id="recordsTableContainer">
+            <table class="table table-hover align-middle mb-0 records-table">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="text-center th-rank">#</th>
+                  <th scope="col">Dificultad</th>
+                  <th scope="col" class="text-center">Tiempo</th>
+                  <th scope="col" class="text-center">Errores</th>
+                  <th scope="col" class="text-end">Fecha y Hora</th>
+                </tr>
+              </thead>
+              <tbody id="recordsTableBody">
+                <!-- Se inyecta dinámicamente desde index.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Estado vacío cuando no hay partidas completadas -->
+          <div id="recordsEmptyState" class="text-center py-4 d-none">
+            <i class="bi bi-award text-secondary fs-1 mb-2 d-block"></i>
+            <h6 class="fw-bold text-secondary mb-1">Aún no hay récords registrados</h6>
+            <p class="small text-muted mb-0">¡Completa una partida de Sudoku para clasificar en el Top 5!</p>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Alerta / Mensajes Informativos -->
+  <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content text-center p-2">
+        <div class="modal-body">
+          <div class="mb-2 text-primary fs-1" id="infoModalIcon">
+            <i class="bi bi-info-circle-fill"></i>
+          </div>
+          <h5 class="fw-bold mb-2" id="infoModalTitle">Información</h5>
+          <p class="text-secondary mb-3 small" id="infoModalBody">Mensaje</p>
+          <button type="button" class="btn btn-primary btn-sm px-4" data-bs-dismiss="modal">Entendido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3.3 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Lógica Principal del Juego -->
+  <script src="index.js"></script>
+</body>
+</html>
