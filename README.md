@@ -1,2 +1,3 @@
 # SodokuPlus
-Sodoku con pequeños cambios
+Trigataro presenta
+[Sodoku Plus](https://trigataro.github.io/SodokuPlus/)
