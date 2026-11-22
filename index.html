@@ -136,7 +136,7 @@
         <!-- Área del Tablero de Sudoku -->
         <div class="board-wrapper position-relative w-100 d-flex justify-content-center">
           <div id="sudokuGrid" class="sudoku-grid shadow-sm" role="grid" aria-label="Tablero de Sudoku">
-            <!-- 81 celdas generadas dinámicamente desde index.js -->
+            <!-- 81 celdas generadas dinámicamente desde JS/app.js -->
           </div>
 
           <!-- Overlay de pausa -->
@@ -190,6 +190,20 @@
             <i class="bi bi-plus-circle-fill"></i>
             <span>Nuevo Juego</span>
           </button>
+          <div class="dropdown">
+            <button type="button" class="btn btn-outline-primary d-flex align-items-center gap-2 px-3 py-2" id="btnChangeSymbols" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-shuffle"></i>
+              <span>Cambiar fichas</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm symbol-menu" aria-labelledby="btnChangeSymbols">
+              <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="numbers"><span class="symbol-menu-icon text-primary">123</span> Números (1-9)</button></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="letters"><span class="symbol-menu-icon text-success">Aa</span> Letras (A-I)</button></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="emojis"><span class="symbol-menu-icon">🍓</span> Frutas</button></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="animals"><span class="symbol-menu-icon">🐼</span> Animales</button></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="japanese"><span class="symbol-menu-icon symbol-menu-asian">あ</span> Japonés (Hiragana)</button></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-symbol-value="chinese"><span class="symbol-menu-icon symbol-menu-asian">山</span> Chino (caracteres)</button></li>
+            </ul>
+          </div>
           <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-2 px-3 py-2" id="btnRestartGame">
             <i class="bi bi-arrow-repeat"></i>
             <span>Reiniciar Partida</span>
@@ -277,16 +291,6 @@
 
     </div>
   </main>
-
-  <aside class="mobile-game-controls" aria-label="Controles táctiles">
-    <div class="virtual-joystick" id="virtualJoystick" aria-label="Joystick direccional">
-      <button type="button" data-direction="up" aria-label="Mover arriba"><i class="bi bi-chevron-up"></i></button>
-      <button type="button" data-direction="left" aria-label="Mover izquierda"><i class="bi bi-chevron-left"></i></button>
-      <span class="joystick-center" aria-hidden="true"></span>
-      <button type="button" data-direction="right" aria-label="Mover derecha"><i class="bi bi-chevron-right"></i></button>
-      <button type="button" data-direction="down" aria-label="Mover abajo"><i class="bi bi-chevron-down"></i></button>
-    </div>
-  </aside>
 
   <!-- Pie de página (Footer) según convenciones del proyecto -->
   <footer class="app-footer border-top py-3 mt-auto">
@@ -434,7 +438,7 @@
                 </tr>
               </thead>
               <tbody id="recordsTableBody">
-                <!-- Se inyecta dinámicamente desde index.js -->
+                <!-- Se inyecta dinámicamente desde JS/app.js -->
               </tbody>
             </table>
           </div>
@@ -472,6 +476,6 @@
   <!-- Bootstrap 5.3.3 Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Lógica Principal del Juego -->
-  <script src="index.js"></script>
+  <script type="module" src="JS/app.js"></script>
 </body>
 </html>

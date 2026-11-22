@@ -223,6 +223,27 @@ body.app-body {
   color: var(--text-primary);
 }
 
+.symbol-menu {
+  min-width: 220px;
+  padding: 0.45rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.symbol-menu .dropdown-item {
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+  color: var(--text-primary);
+}
+
+.symbol-menu .dropdown-item:hover,
+.symbol-menu .dropdown-item:focus {
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
 .symbol-menu-icon {
   display: inline-flex;
   width: 1.5rem;
@@ -640,44 +661,6 @@ body.app-body {
   }
 }
 
-.mobile-game-controls {
-  display: none;
-}
-
-.virtual-joystick {
-  width: 112px;
-  height: 112px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 3px;
-  padding: 5px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
-  backdrop-filter: blur(8px);
-}
-
-.virtual-joystick button,
-.joystick-center {
-  border: 0;
-  border-radius: 50%;
-  background: var(--keypad-btn-bg);
-  color: var(--keypad-btn-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  touch-action: none;
-}
-
-.virtual-joystick [data-direction="up"] { grid-column: 2; grid-row: 1; }
-.virtual-joystick [data-direction="left"] { grid-column: 1; grid-row: 2; }
-.joystick-center { grid-column: 2; grid-row: 2; background: var(--border-subtle); width: 12px; height: 12px; margin: auto; }
-.virtual-joystick [data-direction="right"] { grid-column: 3; grid-row: 2; }
-.virtual-joystick [data-direction="down"] { grid-column: 2; grid-row: 3; }
-
 @media (max-width: 767.98px) {
   .app-navbar {
     position: sticky;
@@ -698,14 +681,6 @@ body.app-body {
     padding-top: 0.65rem !important;
   }
 
-  .mobile-game-controls {
-    display: block;
-    position: fixed;
-    left: 12px;
-    bottom: 82px;
-    z-index: 30;
-  }
-
   .header-controls-wrap {
     width: 100%;
   }
@@ -718,9 +693,6 @@ body.app-body {
     --bs-gutter-y: 0.85rem;
   }
 
-  .mobile-game-controls {
-    bottom: max(12px, env(safe-area-inset-bottom));
-  }
 }
 
 @media (max-height: 560px) and (orientation: landscape) {
@@ -742,7 +714,4 @@ body.app-body {
     height: 38px;
   }
 
-  .mobile-game-controls {
-    display: none;
-  }
 }

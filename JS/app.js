@@ -1,80 +1,28 @@
 /**
  * ============================================================================
  * Proyecto: SodokuPlus
- * Archivo: index.js
- * Descripción: Lógica completa del juego Sudoku con 4 niveles de dificultad,
- *              3 conjuntos de símbolos intercambiables (Números 1-9, Letras A-I
- *              y 9 Emojis), 4 temas de color para lectura óptima, historial
- *              de deshacer, pistas, temporizador y validación automática.
+ * Archivo: JS/app.js
+ * Descripción: Lógica de interfaz del Sudoku con selección de casillas vacías,
+ *              símbolos intercambiables, temas de color, récords, deshacer,
+ *              pistas, temporizador y validación automática.
  * Convenciones: Se siguen las pautas del proyecto (HTML5, Bootstrap, sin código
  *               inline y con comentarios explicativos).
  * ============================================================================
  */
 
+import {
+  DIFFICULTY_NAMES,
+  SYMBOL_MODE_NAMES,
+  SYMBOL_SETS,
+  THEME_NAMES
+} from "./config.js";
+import { generateNewPuzzle, getDifficultyForEmptyCells } from "./sudoku-engine.js";
+
 (() => {
   "use strict";
 
   /* ==========================================================================
-   * 1. Constantes y Mapeo de Símbolos
-   * ========================================================================== */
-
-  /**
-   * Mapeo de valores internos (1 a 9) hacia sus representaciones visuales.
-   * - numbers: Clásico (1 al 9).
-   * - letters: Variante tipo Wordoku (A a la I).
-   * - emojis/animals: Conjuntos visuales de símbolos fáciles de distinguir.
-   * - japanese/chinese: Variantes con nueve caracteres únicos.
-   */
-  const SYMBOL_SETS = {
-    numbers: ["", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-    letters: ["", "A", "B", "C", "D", "E", "F", "G", "H", "I"],
-    emojis:  ["", "🍎", "🍌", "🍇", "🍒", "🍋", "🍉", "🍓", "🥝", "🥑"],
-    animals: ["", "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨"],
-    japanese: ["", "あ", "い", "う", "え", "お", "か", "き", "く", "け"],
-    chinese: ["", "日", "月", "火", "水", "木", "金", "土", "山", "川"]
-  };
-
-  const DIFFICULTY_EMPTY_CELLS = {
-    "very-easy": { min: 20, max: 29 },
-    "easy":      { min: 30, max: 39 },
-    "medium":    { min: 40, max: 47 },
-    "hard":      { min: 48, max: 54 }
-  };
-
-  /**
-   * Nombres amigables para mostrar en los modales y resúmenes.
-   */
-  const DIFFICULTY_NAMES = {
-    "very-easy": "Muy Fácil",
-    "easy":      "Fácil",
-    "medium":    "Medio",
-    "hard":      "Difícil"
-  };
-
-  /**
-   * Nombres legibles para los temas de color.
-   */
-  const THEME_NAMES = {
-    light:    "Modo Claro",
-    dark:     "Modo Oscuro",
-    sepia:    "Tono Sepia",
-    contrast: "Alto Contraste"
-  };
-
-  /**
-   * Información visual para cada modalidad de símbolos en el selector combobox.
-   */
-  const SYMBOL_MODE_NAMES = {
-    numbers: { label: "Números (1-9)", icon: "bi-123" },
-    letters: { label: "Letras (A-I)", icon: "bi-fonts" },
-    emojis:  { label: "Frutas", icon: "bi-emoji-smile" },
-    animals: { label: "Animales", icon: "bi-heart" },
-    japanese: { label: "Japonés", icon: "bi-translate" },
-    chinese: { label: "Chino", icon: "bi-translate" }
-  };
-
-  /* ==========================================================================
-   * 2. Estado Global de la Partida
+   * 1. Estado Global de la Partida
    * ========================================================================== */
 
   const state = {
@@ -103,7 +51,7 @@
   };
 
   /* ==========================================================================
-   * 3. Referencias al DOM (Document Object Model)
+   * 2. Referencias al DOM (Document Object Model)
    * ========================================================================== */
 
   const DOM = {
@@ -134,7 +82,7 @@
     menuRestart: document.getElementById("menuRestart"),
     menuPause: document.getElementById("menuPause"),
     menuRecords: document.getElementById("menuRecords"),
-    virtualJoystick: document.getElementById("virtualJoystick"),
+    symbolModeItems: document.querySelectorAll("[data-symbol-value]"),
     currentThemeLabel: document.getElementById("currentThemeLabel"),
     themeDropdownItems: document.querySelectorAll("[data-theme-value]"),
     
@@ -171,7 +119,7 @@
   let gameSetupModalInstance = null;
 
   /* ==========================================================================
-   * 4. Motor de Audio Simple (Web Audio API)
+   * 3. Motor de Audio Simple (Web Audio API)
    *    Brinda feedback sonoro placentero sin necesidad de archivos externos.
    * ========================================================================== */
 
@@ -219,154 +167,7 @@
   }
 
   /* ==========================================================================
-   * 5. Algoritmos de Generación y Resolución de Sudoku
-   * ========================================================================== */
-
-  /**
-   * Crea una matriz vacía de 9x9 rellena de ceros.
-   * @returns {number[][]} Matriz 9x9 con ceros
-   */
-  function createEmptyMatrix() {
-    return Array.from({ length: 9 }, () => Array(9).fill(0));
-  }
-
-  /**
-   * Comprueba si un valor dado puede colocarse en (row, col) sin violar
-   * las reglas clásicas de fila, columna y cuadrante 3x3.
-   * @param {number[][]} board Matriz 9x9
-   * @param {number} row Índice de fila (0-8)
-   * @param {number} col Índice de columna (0-8)
-   * @param {number} val Número a probar (1-9)
-   * @returns {boolean} True si la posición es válida
-   */
-  function isValidPlacement(board, row, col, val) {
-    for (let i = 0; i < 9; i++) {
-      // Verificar coincidencia en la misma fila o columna
-      if (board[row][i] === val || board[i][col] === val) {
-        return false;
-      }
-    }
-
-    // Verificar coincidencia en el bloque 3x3 correspondiente
-    const startRow = Math.floor(row / 3) * 3;
-    const startCol = Math.floor(col / 3) * 3;
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) {
-        if (board[startRow + r][startCol + c] === val) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Mezcla aleatoriamente los elementos de un array (Fisher-Yates Shuffle).
-   * @param {Array} arr Arreglo a mezclar
-   * @returns {Array} Arreglo mezclado
-   */
-  function shuffleArray(arr) {
-    const copy = [...arr];
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  }
-
-  /**
-   * Resuelve el tablero mediante backtracking recursivo con orden aleatorio.
-   * Al ejecutarse sobre una matriz con bloques diagonales pre-llenados,
-   * produce una solución completa válida y aleatoria.
-   * @param {number[][]} board Matriz a resolver/completar
-   * @returns {boolean} True si se encontró solución
-   */
-  function solveSudokuRandomized(board) {
-    for (let r = 0; r < 9; r++) {
-      for (let c = 0; c < 9; c++) {
-        if (board[r][c] === 0) {
-          const numbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-          for (const num of numbers) {
-            if (isValidPlacement(board, r, c, num)) {
-              board[r][c] = num;
-              if (solveSudokuRandomized(board)) {
-                return true;
-              }
-              board[r][c] = 0; // Retroceso (backtrack)
-            }
-          }
-          return false; // No hay número válido para esta celda vacía
-        }
-      }
-    }
-    return true; // Todas las celdas llenas con éxito
-  }
-
-  /**
-   * Genera un tablero de Sudoku completo y válido.
-   * @returns {number[][]} Matriz 9x9 completa
-   */
-  function generateCompleteBoard() {
-    const board = createEmptyMatrix();
-
-    // Rellenar independientemente los tres bloques 3x3 diagonales (0,0), (3,3) y (6,6)
-    // Como no comparten fila ni columna, se pueden llenar sin conflictos.
-    for (let block = 0; block < 9; block += 3) {
-      const nums = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      let idx = 0;
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-          board[block + r][block + c] = nums[idx++];
-        }
-      }
-    }
-
-    // Resolver el resto de las celdas con backtracking aleatorizado
-    solveSudokuRandomized(board);
-    return board;
-  }
-
-  /**
-   * Genera una nueva partida ocultando la cantidad elegida de casillas.
-   * @param {number} emptyCells Casillas vacías solicitadas por el jugador
-   */
-  function generateNewPuzzle(emptyCells) {
-    const solution = generateCompleteBoard();
-    const puzzle = solution.map(row => [...row]);
-
-    const cellsToRemove = Math.min(54, Math.max(20, emptyCells));
-
-    // Crear lista de todas las 81 coordenadas y mezclarla
-    const allCoords = [];
-    for (let r = 0; r < 9; r++) {
-      for (let c = 0; c < 9; c++) {
-        allCoords.push({ r, c });
-      }
-    }
-    const shuffledCoords = shuffleArray(allCoords);
-
-    // Vaciar celdas seleccionadas al azar
-    for (let i = 0; i < cellsToRemove; i++) {
-      const { r, c } = shuffledCoords[i];
-      puzzle[r][c] = 0;
-    }
-
-    return {
-      solution,
-      puzzle
-    };
-  }
-
-  function getDifficultyForEmptyCells(emptyCells) {
-    for (const [difficulty, range] of Object.entries(DIFFICULTY_EMPTY_CELLS)) {
-      if (emptyCells >= range.min && emptyCells <= range.max) return difficulty;
-    }
-    return "easy";
-  }
-
-  /* ==========================================================================
-   * 6. Renderizado de Interfaz y Celdas
+   * 4. Renderizado de Interfaz y Celdas
    * ========================================================================== */
 
   /**
@@ -499,7 +300,7 @@
   }
 
   /* ==========================================================================
-   * 7. Interacciones del Jugador
+   * 5. Interacciones del Jugador
    * ========================================================================== */
 
   /**
@@ -760,7 +561,7 @@
   }
 
   /* ==========================================================================
-   * 8. Gestión y Persistencia de los Top 5 Mejores Récords con Fecha
+   * 6. Gestión y Persistencia de los Top 5 Mejores Récords con Fecha
    * ========================================================================== */
 
   const STORAGE_KEY_RECORDS = "sodoku_plus_records";
@@ -952,7 +753,7 @@
   }
 
   /* ==========================================================================
-   * 8. Temporizador y Control de Pausa
+   * 7. Temporizador y Control de Pausa
    * ========================================================================== */
 
   /**
@@ -1016,7 +817,7 @@
   }
 
   /* ==========================================================================
-   * 9. Cambio de Temas de Color y Variantes de Símbolos
+   * 8. Cambio de Temas de Color y Variantes de Símbolos
    * ========================================================================== */
 
   /**
@@ -1065,7 +866,7 @@
   }
 
   /* ==========================================================================
-   * 10. Gestión de Partidas (Nuevo Juego y Reiniciar)
+   * 9. Gestión de Partidas (Nuevo Juego y Reiniciar)
    * ========================================================================== */
 
   /**
@@ -1231,7 +1032,7 @@
   }
 
   /* ==========================================================================
-   * 11. Manejo de Eventos de Teclado
+   * 10. Manejo de Eventos de Teclado
    * ========================================================================== */
 
   /**
@@ -1301,7 +1102,7 @@
   }
 
   /* ==========================================================================
-   * 12. Vinculación de Event Listeners e Inicialización
+   * 11. Vinculación de Event Listeners e Inicialización
    * ========================================================================== */
 
   /**
@@ -1394,6 +1195,12 @@
       });
     });
 
+    DOM.symbolModeItems.forEach(item => {
+      item.addEventListener("click", () => {
+        setSymbolMode(item.dataset.symbolValue);
+      });
+    });
+
     if (DOM.btnShare) {
       DOM.btnShare.addEventListener("click", shareGame);
     }
@@ -1414,15 +1221,6 @@
           recordsModalInstance = new window.bootstrap.Modal(DOM.recordsModalEl);
         }
         if (recordsModalInstance) recordsModalInstance.show();
-      });
-    }
-
-    if (DOM.virtualJoystick) {
-      DOM.virtualJoystick.addEventListener("pointerdown", (event) => {
-        const button = event.target.closest("[data-direction]");
-        if (!button) return;
-        event.preventDefault();
-        moveSelectedCell(button.dataset.direction);
       });
     }
 
