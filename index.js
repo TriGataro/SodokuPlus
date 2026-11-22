@@ -22,23 +22,23 @@
    * Mapeo de valores internos (1 a 9) hacia sus representaciones visuales.
    * - numbers: Clásico (1 al 9).
    * - letters: Variante tipo Wordoku (A a la I).
-   * - emojis: Variante visual con 9 frutas y elementos de fácil diferenciación.
+   * - emojis/animals: Conjuntos visuales de símbolos fáciles de distinguir.
+   * - japanese/chinese: Variantes con nueve caracteres únicos.
    */
   const SYMBOL_SETS = {
     numbers: ["", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
     letters: ["", "A", "B", "C", "D", "E", "F", "G", "H", "I"],
-    emojis:  ["", "🍎", "🍌", "🍇", "🍒", "🍋", "🍉", "🍓", "🥝", "🥑"]
+    emojis:  ["", "🍎", "🍌", "🍇", "🍒", "🍋", "🍉", "🍓", "🥝", "🥑"],
+    animals: ["", "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨"],
+    japanese: ["", "あ", "い", "う", "え", "お", "か", "き", "く", "け"],
+    chinese: ["", "日", "月", "火", "水", "木", "金", "土", "山", "川"]
   };
 
-  /**
-   * Cantidad de celdas iniciales visibles según la dificultad seleccionada.
-   * Un tablero de Sudoku completo tiene 81 celdas.
-   */
-  const DIFFICULTY_CLUES = {
-    "very-easy": 52, // Muy Fácil: muchas pistas, ideal para principiantes
-    "easy":      42, // Fácil: nivel estándar relajado
-    "medium":    34, // Medio: requiere técnicas básicas de deducción
-    "hard":      27  // Difícil: requiere técnicas avanzadas y cálculo
+  const DIFFICULTY_EMPTY_CELLS = {
+    "very-easy": { min: 20, max: 29 },
+    "easy":      { min: 30, max: 39 },
+    "medium":    { min: 40, max: 47 },
+    "hard":      { min: 48, max: 54 }
   };
 
   /**
@@ -67,7 +67,10 @@
   const SYMBOL_MODE_NAMES = {
     numbers: { label: "Números (1-9)", icon: "bi-123" },
     letters: { label: "Letras (A-I)", icon: "bi-fonts" },
-    emojis:  { label: "Emojis", icon: "bi-emoji-smile" }
+    emojis:  { label: "Frutas", icon: "bi-emoji-smile" },
+    animals: { label: "Animales", icon: "bi-heart" },
+    japanese: { label: "Japonés", icon: "bi-translate" },
+    chinese: { label: "Chino", icon: "bi-translate" }
   };
 
   /* ==========================================================================
@@ -75,7 +78,7 @@
    * ========================================================================== */
 
   const state = {
-    currentDifficulty: "easy",   // Dificultad activa
+    currentDifficulty: "easy",   // Categoría de récord derivada de casillas vacías
     currentSymbolMode: "numbers", // Modo de símbolos activo ('numbers' | 'letters' | 'emojis')
     currentTheme: "light",       // Tema de color activo ('light' | 'dark' | 'sepia' | 'contrast')
     
@@ -89,6 +92,8 @@
     
     errorsCount: 0,              // Contador de errores cometidos
     hintsCount: 3,               // Cantidad de pistas disponibles
+    emptyCells: 39,
+    hasStarted: false,
     
     // Control del temporizador
     timerSeconds: 0,
@@ -103,7 +108,12 @@
 
   const DOM = {
     grid: document.getElementById("sudokuGrid"),
-    difficultySelect: document.getElementById("difficultySelect"),
+    emptyCellsSelect: document.getElementById("emptyCellsSelect"),
+    emptyCellsValue: document.getElementById("emptyCellsValue"),
+    setupSymbolSelect: document.getElementById("setupSymbolSelect"),
+    currentEmptyCells: document.getElementById("currentEmptyCells"),
+    btnConfirmGameSetup: document.getElementById("btnConfirmGameSetup"),
+    gameSetupModalEl: document.getElementById("gameSetupModal"),
     timerDisplay: document.getElementById("timerDisplay"),
     btnPause: document.getElementById("btnPause"),
     btnPauseIcon: document.getElementById("btnPauseIcon"),
@@ -119,14 +129,16 @@
     btnNewGame: document.getElementById("btnNewGame"),
     btnRestartGame: document.getElementById("btnRestartGame"),
     btnModalPlayAgain: document.getElementById("btnModalPlayAgain"),
+    btnShare: document.getElementById("btnShare"),
+    menuNewGame: document.getElementById("menuNewGame"),
+    menuRestart: document.getElementById("menuRestart"),
+    menuPause: document.getElementById("menuPause"),
+    menuRecords: document.getElementById("menuRecords"),
+    virtualJoystick: document.getElementById("virtualJoystick"),
     currentThemeLabel: document.getElementById("currentThemeLabel"),
     themeDropdownItems: document.querySelectorAll("[data-theme-value]"),
     
-    // Selector de Modo de Símbolos en Combobox / Dropdown
-    symbolDropdownBtn: document.getElementById("symbolDropdownBtn"),
-    currentSymbolIcon: document.getElementById("currentSymbolIcon"),
     currentSymbolLabel: document.getElementById("currentSymbolLabel"),
-    symbolDropdownItems: document.querySelectorAll("[data-symbol-value]"),
     
     // Modal de Victoria
     victoryModalEl: document.getElementById("victoryModal"),
@@ -156,6 +168,7 @@
   let victoryModalInstance = null;
   let recordsModalInstance = null;
   let infoModalInstance = null;
+  let gameSetupModalInstance = null;
 
   /* ==========================================================================
    * 4. Motor de Audio Simple (Web Audio API)
@@ -315,16 +328,14 @@
   }
 
   /**
-   * Genera una nueva partida de Sudoku retirando celdas según el nivel de dificultad.
-   * @param {string} difficulty 'very-easy' | 'easy' | 'medium' | 'hard'
+   * Genera una nueva partida ocultando la cantidad elegida de casillas.
+   * @param {number} emptyCells Casillas vacías solicitadas por el jugador
    */
-  function generateNewPuzzle(difficulty) {
+  function generateNewPuzzle(emptyCells) {
     const solution = generateCompleteBoard();
     const puzzle = solution.map(row => [...row]);
 
-    // Calcular cuántas celdas se deben ocultar
-    const cluesToKeep = DIFFICULTY_CLUES[difficulty] || 40;
-    const cellsToRemove = 81 - cluesToKeep;
+    const cellsToRemove = Math.min(54, Math.max(20, emptyCells));
 
     // Crear lista de todas las 81 coordenadas y mezclarla
     const allCoords = [];
@@ -345,6 +356,13 @@
       solution,
       puzzle
     };
+  }
+
+  function getDifficultyForEmptyCells(emptyCells) {
+    for (const [difficulty, range] of Object.entries(DIFFICULTY_EMPTY_CELLS)) {
+      if (emptyCells >= range.min && emptyCells <= range.max) return difficulty;
+    }
+    return "easy";
   }
 
   /* ==========================================================================
@@ -401,9 +419,8 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn keypad-btn w-100 p-0 shadow-sm";
-      if (state.currentSymbolMode === "emojis") {
-        btn.classList.add("symbol-emoji");
-      }
+      if (["emojis", "animals"].includes(state.currentSymbolMode)) btn.classList.add("symbol-emoji");
+      if (["japanese", "chinese"].includes(state.currentSymbolMode)) btn.classList.add("symbol-asian");
       btn.textContent = symbols[i];
       btn.title = `Ingresar ${symbols[i]}`;
       btn.setAttribute("aria-label", `Ingresar ${symbols[i]}`);
@@ -491,7 +508,7 @@
    * @param {number} col Columna seleccionada
    */
   function handleCellSelect(row, col) {
-    if (state.isPaused || state.isCompleted) return;
+    if (!state.hasStarted || state.isPaused || state.isCompleted) return;
     state.selectedCell = { row, col };
     playBeep(440, "sine", 0.04);
     renderBoard();
@@ -502,7 +519,7 @@
    * @param {number} val Valor numérico lógico (1 a 9)
    */
   function handleInputNumber(val) {
-    if (state.isPaused || state.isCompleted) return;
+    if (!state.hasStarted || state.isPaused || state.isCompleted) return;
     const { row, col } = state.selectedCell;
 
     // Verificar si hay una celda seleccionada y si no es una celda fija original
@@ -559,7 +576,7 @@
    * Borra el contenido de la celda actualmente seleccionada.
    */
   function handleErase() {
-    if (state.isPaused || state.isCompleted) return;
+    if (!state.hasStarted || state.isPaused || state.isCompleted) return;
     const { row, col } = state.selectedCell;
 
     if (row < 0 || col < 0) return;
@@ -584,7 +601,7 @@
    * Deshace el último movimiento realizado por el jugador.
    */
   function handleUndo() {
-    if (state.isPaused || state.isCompleted || state.history.length === 0) return;
+    if (!state.hasStarted || state.isPaused || state.isCompleted || state.history.length === 0) return;
 
     const lastAction = state.history.pop();
     state.currentBoard[lastAction.row][lastAction.col] = lastAction.prev;
@@ -599,7 +616,7 @@
    * o en la primera celda vacía/errónea encontrada.
    */
   function handleHint() {
-    if (state.isPaused || state.isCompleted) return;
+    if (!state.hasStarted || state.isPaused || state.isCompleted) return;
 
     if (state.hintsCount <= 0) {
       showInfoModal("Sin pistas", "Ya has utilizado todas las pistas disponibles en esta partida.", "bi-lightbulb-off");
@@ -663,7 +680,7 @@
    * Verifica el estado actual del tablero y resalta visualmente cualquier inconsistencia.
    */
   function handleCheckBoard() {
-    if (state.isPaused || state.isCompleted) return;
+    if (!state.hasStarted || state.isPaused || state.isCompleted) return;
 
     let conflicts = 0;
     let emptyCells = 0;
@@ -699,6 +716,7 @@
    * Comprueba si el tablero fue resuelto satisfactoriamente.
    */
   function checkGameCompletion() {
+    if (!state.hasStarted) return false;
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
         if (state.currentBoard[r][c] !== state.solutionBoard[r][c]) {
@@ -956,13 +974,17 @@
   function startTimer() {
     stopTimer();
     state.timerSeconds = 0;
-    DOM.timerDisplay.textContent = formatTime(state.timerSeconds);
+    renderTimer();
     state.timerInterval = setInterval(() => {
       if (!state.isPaused && !state.isCompleted) {
         state.timerSeconds++;
-        DOM.timerDisplay.textContent = formatTime(state.timerSeconds);
+        renderTimer();
       }
     }, 1000);
+  }
+
+  function renderTimer() {
+    DOM.timerDisplay.textContent = formatTime(state.timerSeconds);
   }
 
   /**
@@ -979,7 +1001,7 @@
    * Alterna entre pausar y reanudar la partida.
    */
   function togglePause() {
-    if (state.isCompleted) return;
+    if (!state.hasStarted || state.isCompleted) return;
     state.isPaused = !state.isPaused;
 
     if (state.isPaused) {
@@ -1015,7 +1037,7 @@
 
   /**
    * Cambia el conjunto de símbolos activo (números, letras o emojis).
-   * Actualiza el botón combobox del navbar, el teclado virtual y el tablero.
+   * Actualiza la configuración, el teclado virtual y el tablero.
    * Guarda la preferencia en localStorage según las reglas 9 y 11 del proyecto.
    * @param {string} mode 'numbers' | 'letters' | 'emojis'
    */
@@ -1023,13 +1045,12 @@
     if (!SYMBOL_SETS[mode]) return;
     state.currentSymbolMode = mode;
 
-    // Actualizar icono y texto en el botón combobox del navbar
     const info = SYMBOL_MODE_NAMES[mode] || SYMBOL_MODE_NAMES.numbers;
     if (DOM.currentSymbolLabel) {
       DOM.currentSymbolLabel.textContent = info.label;
     }
-    if (DOM.currentSymbolIcon) {
-      DOM.currentSymbolIcon.className = `bi ${info.icon}`;
+    if (DOM.setupSymbolSelect) {
+      DOM.setupSymbolSelect.value = mode;
     }
 
     // Persistir preferencia en localStorage
@@ -1048,18 +1069,14 @@
    * ========================================================================== */
 
   /**
-   * Inicia una nueva partida con la dificultad elegida.
-   * @param {string} [difficulty] Nivel opcional; si no se provee, usa el selector.
+   * Inicia una partida con la cantidad de casillas vacías y el tipo de fichas elegidos.
    */
-  function startNewGame(difficulty) {
-    if (difficulty) {
-      state.currentDifficulty = difficulty;
-      DOM.difficultySelect.value = difficulty;
-    } else {
-      state.currentDifficulty = DOM.difficultySelect.value;
-    }
-
-    const { solution, puzzle } = generateNewPuzzle(state.currentDifficulty);
+  function startNewGame() {
+    state.emptyCells = Math.min(54, Math.max(20, Number(DOM.emptyCellsSelect.value)));
+    state.currentDifficulty = getDifficultyForEmptyCells(state.emptyCells);
+    state.hasStarted = true;
+    DOM.currentEmptyCells.textContent = state.emptyCells.toString();
+    const { solution, puzzle } = generateNewPuzzle(state.emptyCells);
 
     state.solutionBoard = solution;
     state.initialBoard = puzzle.map(r => [...r]);
@@ -1088,6 +1105,7 @@
    * Reinicia la partida actual con el mismo tablero inicial, limpiando movimientos del jugador.
    */
   function restartCurrentGame() {
+    if (!state.hasStarted) return;
     state.currentBoard = state.initialBoard.map(r => [...r]);
     state.selectedCell = { row: -1, col: -1 };
     state.history = [];
@@ -1101,6 +1119,38 @@
     startTimer();
     renderBoard();
     showInfoModal("Partida Reiniciada", "El tablero se ha restaurado al estado original de la partida.", "bi-arrow-repeat");
+  }
+
+  function openGameSetupModal() {
+    DOM.setupSymbolSelect.value = state.currentSymbolMode;
+    DOM.emptyCellsSelect.value = state.emptyCells.toString();
+    DOM.emptyCellsValue.textContent = state.emptyCells.toString();
+
+    if (state.hasStarted && !state.isCompleted) {
+      state.isPaused = true;
+    }
+
+    if (!gameSetupModalInstance && window.bootstrap) {
+      gameSetupModalInstance = new window.bootstrap.Modal(DOM.gameSetupModalEl);
+    }
+    if (gameSetupModalInstance) {
+      gameSetupModalInstance.show();
+    } else {
+      window.alert("No se pudo abrir la configuración de la partida. Recarga la página e inténtalo de nuevo.");
+    }
+  }
+
+  function confirmGameSetup() {
+    const emptyCells = Number(DOM.emptyCellsSelect.value);
+    const symbolMode = DOM.setupSymbolSelect.value;
+    if (!Number.isInteger(emptyCells) || emptyCells < 20 || emptyCells > 54 || !SYMBOL_SETS[symbolMode]) {
+      showInfoModal("Configuración inválida", "Elige entre 20 y 54 casillas vacías y selecciona un tipo de fichas válido.", "bi-exclamation-triangle-fill");
+      return;
+    }
+
+    startNewGame();
+    setSymbolMode(symbolMode);
+    gameSetupModalInstance.hide();
   }
 
   /**
@@ -1122,6 +1172,64 @@
     }
   }
 
+  function moveSelectedCell(direction) {
+    if (state.isPaused || state.isCompleted) return;
+    let { row, col } = state.selectedCell;
+    if (row < 0 || col < 0) {
+      row = 0;
+      col = 0;
+    } else {
+      if (direction === "up") row = Math.max(0, row - 1);
+      if (direction === "down") row = Math.min(8, row + 1);
+      if (direction === "left") col = Math.max(0, col - 1);
+      if (direction === "right") col = Math.min(8, col + 1);
+    }
+    handleCellSelect(row, col);
+  }
+
+  async function shareGame() {
+    const shareData = {
+      title: "SodokuPlus",
+      text: `Estoy jugando SodokuPlus en nivel ${DIFFICULTY_NAMES[state.currentDifficulty]}.`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+        showInfoModal("Enlace copiado", "El enlace del juego se copió al portapapeles.", "bi-share");
+      } else {
+        showInfoModal("Compartir", shareData.url, "bi-share");
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        showInfoModal("No se pudo compartir", "Abre el menú de tu navegador para copiar o compartir la página.", "bi-share");
+      }
+    }
+  }
+
+  let lastGamepadDirection = "";
+  function pollGamepad() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const pad = [...pads].find(Boolean);
+    if (!pad) return;
+
+    const axes = pad.axes || [];
+    const buttons = pad.buttons || [];
+    let direction = "";
+    if (axes[1] < -0.5 || buttons[12]?.pressed) direction = "up";
+    else if (axes[1] > 0.5 || buttons[13]?.pressed) direction = "down";
+    else if (axes[0] < -0.5 || buttons[14]?.pressed) direction = "left";
+    else if (axes[0] > 0.5 || buttons[15]?.pressed) direction = "right";
+
+    if (direction && direction !== lastGamepadDirection) {
+      moveSelectedCell(direction);
+    }
+    lastGamepadDirection = direction;
+  }
+
   /* ==========================================================================
    * 11. Manejo de Eventos de Teclado
    * ========================================================================== */
@@ -1133,6 +1241,8 @@
   function handleKeyDown(e) {
     if (state.isPaused || state.isCompleted) return;
 
+    const key = e.key.toLowerCase();
+
     // Atajo para Deshacer: Ctrl + Z
     if (e.ctrlKey && (e.key === "z" || e.key === "Z")) {
       e.preventDefault();
@@ -1142,16 +1252,23 @@
 
     // Teclas de dirección para moverse por el tablero
     let { row, col } = state.selectedCell;
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    const arrowOrWasd = {
+      ArrowUp: "up", w: "up",
+      ArrowDown: "down", s: "down",
+      ArrowLeft: "left", a: "left",
+      ArrowRight: "right", d: "right"
+    };
+    if (arrowOrWasd[e.key] || arrowOrWasd[key]) {
       e.preventDefault();
+      const direction = arrowOrWasd[e.key] || arrowOrWasd[key];
       if (row === -1 || col === -1) {
         row = 0;
         col = 0;
       } else {
-        if (e.key === "ArrowUp")    row = Math.max(0, row - 1);
-        if (e.key === "ArrowDown")  row = Math.min(8, row + 1);
-        if (e.key === "ArrowLeft")  col = Math.max(0, col - 1);
-        if (e.key === "ArrowRight") col = Math.min(8, col + 1);
+        if (direction === "up")    row = Math.max(0, row - 1);
+        if (direction === "down")  row = Math.min(8, row + 1);
+        if (direction === "left")  col = Math.max(0, col - 1);
+        if (direction === "right") col = Math.min(8, col + 1);
       }
       handleCellSelect(row, col);
       return;
@@ -1191,13 +1308,26 @@
    * Registra todos los escuchadores de eventos requeridos por la interfaz.
    */
   function setupEventListeners() {
-    // Cambio en selector de dificultad
-    DOM.difficultySelect.addEventListener("change", (e) => {
-      startNewGame(e.target.value);
+    DOM.emptyCellsSelect.addEventListener("input", () => {
+      DOM.emptyCellsValue.textContent = DOM.emptyCellsSelect.value;
+    });
+    DOM.btnConfirmGameSetup.addEventListener("click", confirmGameSetup);
+    DOM.gameSetupModalEl.addEventListener("hidden.bs.modal", () => {
+      if (state.hasStarted && !state.isCompleted) {
+        state.isPaused = false;
+        DOM.pauseOverlay.classList.add("d-none");
+        DOM.btnPauseIcon.className = "bi bi-pause-fill";
+        DOM.btnPause.title = "Pausar partida";
+      }
+    });
+    DOM.gameSetupModalEl.addEventListener("hide.bs.modal", () => {
+      if (DOM.gameSetupModalEl.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
     });
 
     // Botones de acción principales
-    DOM.btnNewGame.addEventListener("click", () => startNewGame());
+    DOM.btnNewGame.addEventListener("click", openGameSetupModal);
     DOM.btnRestartGame.addEventListener("click", restartCurrentGame);
     DOM.btnPause.addEventListener("click", togglePause);
     DOM.btnResume.addEventListener("click", togglePause);
@@ -1211,9 +1341,11 @@
     // Botón jugar de nuevo dentro del modal de victoria
     DOM.btnModalPlayAgain.addEventListener("click", () => {
       if (victoryModalInstance) {
+        DOM.victoryModalEl.addEventListener("hidden.bs.modal", openGameSetupModal, { once: true });
         victoryModalInstance.hide();
+      } else {
+        openGameSetupModal();
       }
-      startNewGame();
     });
 
     // Botón para ver récords desde el modal de victoria
@@ -1254,16 +1386,6 @@
       DOM.btnClearRecords.addEventListener("click", handleClearRecords);
     }
 
-    // Selector de modo de símbolos en Combobox / Dropdown
-    if (DOM.symbolDropdownItems) {
-      DOM.symbolDropdownItems.forEach(item => {
-        item.addEventListener("click", () => {
-          const symbolValue = item.dataset.symbolValue;
-          setSymbolMode(symbolValue);
-        });
-      });
-    }
-
     // Selector de temas de color (Dropdown)
     DOM.themeDropdownItems.forEach(item => {
       item.addEventListener("click", () => {
@@ -1272,8 +1394,50 @@
       });
     });
 
+    if (DOM.btnShare) {
+      DOM.btnShare.addEventListener("click", shareGame);
+    }
+
+    if (DOM.menuNewGame) {
+      DOM.menuNewGame.addEventListener("click", openGameSetupModal);
+    }
+    if (DOM.menuRestart) {
+      DOM.menuRestart.addEventListener("click", restartCurrentGame);
+    }
+    if (DOM.menuPause) {
+      DOM.menuPause.addEventListener("click", togglePause);
+    }
+    if (DOM.menuRecords) {
+      DOM.menuRecords.addEventListener("click", () => {
+        setActiveRecordsFilter(currentRecordsFilter);
+        if (!recordsModalInstance && window.bootstrap) {
+          recordsModalInstance = new window.bootstrap.Modal(DOM.recordsModalEl);
+        }
+        if (recordsModalInstance) recordsModalInstance.show();
+      });
+    }
+
+    if (DOM.virtualJoystick) {
+      DOM.virtualJoystick.addEventListener("pointerdown", (event) => {
+        const button = event.target.closest("[data-direction]");
+        if (!button) return;
+        event.preventDefault();
+        moveSelectedCell(button.dataset.direction);
+      });
+    }
+
+    document.addEventListener("contextmenu", (event) => event.preventDefault());
+    document.addEventListener("copy", (event) => event.preventDefault());
+    document.addEventListener("cut", (event) => event.preventDefault());
+    document.addEventListener("paste", (event) => event.preventDefault());
+    document.addEventListener("selectstart", (event) => event.preventDefault());
+
     // Eventos globales de teclado
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("gamepadconnected", () => {
+      showInfoModal("Joystick conectado", "Se detectó un mando compatible. Puedes mover la selección con la cruceta o el stick.", "bi-controller");
+    });
+    setInterval(pollGamepad, 150);
   }
 
   /**
@@ -1311,8 +1475,8 @@
     // Configurar manejadores de eventos
     setupEventListeners();
 
-    // Iniciar la primera partida
-    startNewGame("easy");
+    // Solicitar la configuración antes de iniciar la primera partida
+    openGameSetupModal();
   }
 
   // Ejecutar cuando el DOM esté listo

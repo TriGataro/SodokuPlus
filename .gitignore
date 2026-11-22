@@ -9,9 +9,9 @@
 # Mantener este archivo .gitignore en control de versiones
 !.gitignore
 
-# Mantener las skills y configuraciones de agentes del proyecto
-!.agents/
-!.agents/**
+# Configuración local de agentes y herramientas
+.agents/
+.agents/**
 
 # ==============================================================================
 # Archivos del sistema operativo y metadatos

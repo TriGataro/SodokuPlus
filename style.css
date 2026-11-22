@@ -122,11 +122,26 @@ body.app-body {
   flex-direction: column;
   transition: background-color 0.25s ease, color 0.25s ease;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+.app-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .app-navbar {
-  background-color: var(--bg-card);
+  background:
+    radial-gradient(ellipse at 12% -40%, rgba(37, 99, 235, 0.13), transparent 55%),
+    var(--bg-card);
   border-color: var(--border-subtle) !important;
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.07);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .app-footer {
@@ -147,8 +162,83 @@ body.app-body {
 }
 
 .brand-title {
-  font-size: 1.45rem;
-  letter-spacing: -0.5px;
+  font-size: 1.4rem;
+  letter-spacing: -0.7px;
+  padding: 0.35rem 0.75rem 0.35rem 0.4rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-card) 82%, var(--bg-app));
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.brand-title:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+}
+
+.app-logo {
+  width: 40px;
+  height: 40px;
+  padding: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.header-controls-wrap {
+  gap: 0.5rem !important;
+}
+
+.header-btn {
+  min-height: 38px;
+  padding: 0.4rem 0.7rem;
+  border-radius: 11px;
+  font-weight: 650;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.header-btn:hover,
+.header-btn[aria-expanded="true"] {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.header-controls-wrap .dropdown-menu {
+  min-width: 190px;
+  padding: 0.45rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.header-controls-wrap .dropdown-item {
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+}
+
+.header-controls-wrap .dropdown-item:hover,
+.header-controls-wrap .dropdown-item:focus {
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+.symbol-menu-icon {
+  display: inline-flex;
+  width: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.08rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.symbol-menu-asian {
+  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Microsoft YaHei", sans-serif;
+}
+
+.symbol-asian {
+  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Microsoft YaHei", sans-serif;
 }
 
 .status-card,
@@ -162,6 +252,31 @@ body.app-body {
   background-color: var(--bg-app);
   padding: 0.25rem 0.65rem;
   border-radius: 0.375rem;
+  white-space: nowrap;
+}
+
+.game-setup-modal .modal-content {
+  background:
+    linear-gradient(120deg, rgba(37, 99, 235, 0.08), transparent 60%),
+    var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  color: var(--text-primary);
+}
+
+.game-setup-modal .form-select {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.game-setup-modal .form-range {
+  accent-color: var(--cell-user-color);
+}
+
+.game-settings-summary {
+  min-width: 0;
+  align-items: center;
 }
 
 /* ==========================================================================
@@ -169,6 +284,7 @@ body.app-body {
    ========================================================================== */
 
 .board-wrapper {
+  width: min(100%, 58vh, 480px) !important;
   max-width: 480px;
 }
 
@@ -265,6 +381,7 @@ body.app-body {
    ========================================================================== */
 
 .keypad-container {
+  width: min(100%, 58vh, 480px) !important;
   max-width: 480px;
 }
 
@@ -436,7 +553,8 @@ body.app-body {
 
 @media (max-width: 576px) {
   .board-wrapper {
-    max-width: 100%;
+    width: min(100%, 58vh) !important;
+    max-width: min(100%, 58vh);
     padding: 0 2px;
   }
 
@@ -449,7 +567,8 @@ body.app-body {
   }
 
   .keypad-container {
-    max-width: 100%;
+    width: min(100%, 58vh) !important;
+    max-width: min(100%, 58vh);
   }
 
   .keypad-btn {
@@ -477,6 +596,28 @@ body.app-body {
   #timerDisplay {
     font-size: 1.05rem !important;
   }
+
+  .status-card .card-body > .d-flex {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .status-card .card-body > .d-flex > :last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .game-setup-modal .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  .game-setup-modal .modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .game-setup-modal .modal-footer .btn {
+    flex: 1 1 auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -491,5 +632,117 @@ body.app-body {
   .header-btn {
     font-size: 0.75rem;
     padding: 0.25rem 0.45rem;
+  }
+
+  .header-controls-wrap .header-btn {
+    min-height: 36px;
+    border-radius: 10px;
+  }
+}
+
+.mobile-game-controls {
+  display: none;
+}
+
+.virtual-joystick {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+  padding: 5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(8px);
+}
+
+.virtual-joystick button,
+.joystick-center {
+  border: 0;
+  border-radius: 50%;
+  background: var(--keypad-btn-bg);
+  color: var(--keypad-btn-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  touch-action: none;
+}
+
+.virtual-joystick [data-direction="up"] { grid-column: 2; grid-row: 1; }
+.virtual-joystick [data-direction="left"] { grid-column: 1; grid-row: 2; }
+.joystick-center { grid-column: 2; grid-row: 2; background: var(--border-subtle); width: 12px; height: 12px; margin: auto; }
+.virtual-joystick [data-direction="right"] { grid-column: 3; grid-row: 2; }
+.virtual-joystick [data-direction="down"] { grid-column: 2; grid-row: 3; }
+
+@media (max-width: 767.98px) {
+  .app-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .brand-title {
+    max-width: 150px;
+  }
+
+  .app-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  main.container {
+    padding-top: 0.65rem !important;
+  }
+
+  .mobile-game-controls {
+    display: block;
+    position: fixed;
+    left: 12px;
+    bottom: 82px;
+    z-index: 30;
+  }
+
+  .header-controls-wrap {
+    width: 100%;
+  }
+
+  main.container {
+    max-width: 100%;
+  }
+
+  main.container > .row {
+    --bs-gutter-y: 0.85rem;
+  }
+
+  .mobile-game-controls {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  main.container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .board-wrapper,
+  .keypad-container {
+    width: min(68vh, 420px) !important;
+  }
+
+  .sudoku-cell {
+    font-size: clamp(0.8rem, 3.8vh, 1.25rem);
+  }
+
+  .keypad-btn {
+    height: 38px;
+  }
+
+  .mobile-game-controls {
+    display: none;
   }
 }
